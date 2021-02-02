@@ -1,0 +1,40 @@
+{
+  "name": "copyrightmanagement",
+  "version": "1.0.0",
+  "description": "This is a tool which will allow the owner of an image file to add its work onto the secured blockchain and can also check for its piracy.",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "dev": "lite-server",
+    "test": "npm run dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yash2412/copyright-management.git"
+  },
+  "keywords": [
+    "copyright",
+    "copyrightmanagement",
+    "piracy",
+    "imagecomparision",
+    "blockchain"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "bootstrap": "4.1.3",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "chai-bignumber": "^2.0.2",
+    "lite-server": "^2.3.0",
+    "nodemon": "^1.17.3",
+    "truffle": "5.0.2",
+    "truffle-contract": "3.0.6"
+  },
+  "bugs": {
+    "url": "https://github.com/Yash2412/copyright-management/issues"
+  },
+  "homepage": "https://github.com/Yash2412/copyright-management#readme"
+}
