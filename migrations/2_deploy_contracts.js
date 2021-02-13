@@ -1,5 +1,5 @@
-const Migrations = artifacts.require("Migrations");
+const NewBlock = artifacts.require("./NewBlock.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(Migrations);
+  deployer.deploy(NewBlock);
 };
