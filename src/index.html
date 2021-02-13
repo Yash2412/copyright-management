@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Copyright Management</title>
+
+    <link rel="icon" href="./img/logo.png">
+
+    <!-- Bootstrap -->
+    <link href="vendor/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/phash-js/dist/phash.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/ipfs/dist/index.min.js"></script>
+    <script src="https://wzrd.in/standalone/buffer"></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style>
+        .container {
+            margin-top: 100px;
+            text-align: center;
+        }
+
+        input {
+            width: 100%;
+        }
+        #displayImage, #watermarked-img, #qrcode{
+            max-width: 100%;
+        }
+
+        .content{
+            margin: 0px auto 0px auto;
+        }
+
+        .after{
+            width: 80%;
+        }
+
+        @media screen and (max-width: 480px) {
+            .after{
+                width: 92%;
+            }
+        }
+
+        h3, #uploadIpfs{
+            margin: 0px auto 50px auto;
+        }
+
+        .imageDisplay{
+            cursor: pointer;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            margin: 0px auto 0px auto;
+            text-align: center;
+            color: #495057;
+            padding: 10px;
+        }
+
+        .overlay {
+            background: #e9e9e9;  
+            display: none;        
+            position: absolute;
+            z-index: 1000;
+            top: 0;       
+            opacity: 0.4;           
+            right: 0;                
+            bottom: 0;
+            left: 0;
+        }
+        .loading{
+            background-color: #ced4da;
+        }
+
+        #loading-img{
+            z-index: 1000;
+            width: 150px;
+            height: 150px;
+            display: none;
+            align-items: center;
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+        }
+
+        #ipfs-complete{
+            margin-bottom: 20px;
+        }
+
+        .ipfs-img{
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            padding: 20px 30px;
+        }
+        .ipfs-complete, .deployment-complete, .deployment-failed{
+            margin: 0px auto 0px auto;
+            width: fit-content;
+        }
+
+        .side{
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            opacity: 0.5;
+        }
+
+
+        #wait{
+            max-width: 170px;
+            animation: wait 1.5s;
+            animation-direction: alternate;
+            animation-iteration-count:infinite;
+        }
+
+        .wait{
+            width: 400px;
+            margin: 0px auto 0px auto;
+            position: relative;
+        }
+
+
+
+        #deploy-complete{
+            max-width: 250px;
+            animation: mymove 1s;
+            animation-direction: alternate;
+            animation-iteration-count:infinite;
+        }
+
+        @keyframes mymove {
+            from {transform: scaleX(-1);}
+            to {transform: scaleX(1);}
+        }
+        @keyframes wait {
+            from {margin-left: -100px;}
+            to {margin-left: 100px;}
+        }
+        
+    </style>
+</head>
+
+<body>
+    <div class="overlay"></div>
+    <div class="loading"><img id="loading-img"  src="/img/loading.gif" alt="loading"></div>
+    <img class="side" src="./img/blockchain.png" alt="sides">
+
+    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow" style="height: 70px;">
+        <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#" target="_blank">
+            <img height="50" src="./img/logo.png" alt="logo">
+            Copyright Management System
+        </a>
+        <ul class="navbar-nav px-3">
+            <li class="nav-item text-nowrap d-none d-sm-none d-sm-block">
+                <small><a class="nav-link">Active account - <span id="account"></span></a></small>
+            </li>
+        </ul>
+    </nav>
+    <div class="container">
+            <div class="waiting" style="display: block;">
+                <div class="wait">
+                    <img src="./img/blockchain.png" id="wait" alt="Waiting....">
+                    <br>
+                    <br>
+                    <h4>Waiting to connect to blockchain and metamask</h4>
+                </div>
+            </div>
+            <div id="content1" style="display: none;" class="content col-md-4 col-12">
+                <form enctype="multipart/form-data" autocomplete="off" onsubmit="App.addImage(); return false;" method="POST">
+                <!-- <form onsubmit="App.addImage(); return false;" method="POST"> -->
+                    <input type="text" name="owner_name" id="owner_name" class="form-control" placeholder="Owner Name" required><br>
+                    <input type="email" name="owner_email" id="owner_email" class="form-control" placeholder="Owner Email" required><br>
+                    <input type="text" name="image_title" id="image_title" class="form-control" placeholder="Image Title" required><br>
+                    <div class="imageDisplay" id="idisplay">
+                        <img id="displayImage" src="img/icons8-upload-100.png" alt="Image"><br>
+                        <span>Select image</span>
+                    </div>                        
+                    <input type="file" class="form-control" onchange="changeImage(this)" hidden name="image" accept="image/*" id="newImage" required><br>
+                    <button type="submit" class="btn btn-dark btn-block">Submit</button>
+                </form>
+                <span id="isPirated"></span>
+            </div>
+            <div class="after content" style="display: none;">
+                <div class="row imageDisplay">
+                    <div class="col-md-6 mb-3">
+                        <h4>Watermarked Image</h3><hr>
+                        <img src="" id="watermarked-img" alt="watermarked-img"  >
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h4>Qr Code</h3><hr>
+                        <img src="" id="qrcode" alt="qrcode"  >
+                    </div>
+                </div>
+                <br>
+                <button class="btn btn-dark btn-block col-md-4 col-12" onclick="App.ipfsUpload()" id="uploadIpfs">Upload to IPFS</button>
+            </div>
+
+
+            <div class="uploading" style="display: none;">
+                <div class="deploy">
+                    <h4>Uploading image to IPFS.</h4><br>
+                    <img src="./img/loading.gif" id="deploy-img" alt="Uploading">
+                </div>
+            </div>
+
+            <div class="ipfs-complete" style="display: none;">
+                <div class="ipfs-img">
+                    <img src="./img/check-circle1.gif" id="ipfs-complete" alt="ipfs complete">
+                    <p>Uploaded to IPFS at <strong><span id="ipfs-address"></span></strong></p>
+                </div>
+                <br>
+                <button class="btn btn-dark btn-block col-md-12 col-12" onclick="App.addBlock()" id="uploadIpfs">Deploy to Blockchain</button>
+            </div>
+
+            <div class="deploying" style="display: none;">
+                <div class="deploy">
+                    <h4>Please wait! <br> Blockchain Deployment in progress :) </h4>
+                    <img src="./img/deployment.gif" id="deploy-img" alt="Deployment">
+                </div>
+            </div>
+
+
+            <div class="deployment-complete" style="display: none;">
+                <div class="ipfs-img">
+                    <img src="./img/logo.png" id="deploy-complete" alt="deploy complete">
+                    <br>
+                    <br>
+                    <h4><span style="color: green;">Success !</span> <br> Your image is successfully deployed to Blockchain.</h4>
+                </div>
+                <br>
+            </div>
+            <div class="deployment-failed" style="display: none;">
+                <div class="ipfs-img">
+                    <img src="./img/cancel.png" id="deploy-complete" alt="deploy complete">
+                    <br>
+                    <br>
+                    <h4><span style="color: #e24c4b;">Failed !</span> <br> opps, something unexpected occur.</h4>
+                    <p>Probabbly you have rejected the metamask payment.</p>
+                </div>
+                <br>
+            </div>
+    </div>
+
+    
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+
+    <script src="vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="vendor/truffle-contract/dist/truffle-contract.js"></script>
+    <script src="app.js"></script>
+    <script>
+        $('#idisplay').click(()=>{
+            $('#newImage').click();
+        })
+
+        function changeImage(input) {
+			if (input.files && input.files[0]) {
+				var reader = new FileReader();
+
+				reader.onload = function (e) {
+                    App.dataUrl = e.target.result
+					$("#displayImage").attr('src', e.target.result)
+				};
+
+				reader.readAsDataURL(input.files[0]);
+			}
+		}
+    </script>
+
+</body>
+
+</html>
