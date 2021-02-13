@@ -30,11 +30,13 @@
     "chai-bignumber": "^2.0.2",
     "lite-server": "^2.3.0",
     "nodemon": "^1.17.3",
-    "truffle": "5.0.2",
-    "truffle-contract": "3.0.6"
+    "truffle": "5.0.2"
   },
   "bugs": {
     "url": "https://github.com/Yash2412/copyright-management/issues"
   },
-  "homepage": "https://github.com/Yash2412/copyright-management#readme"
+  "homepage": "https://github.com/Yash2412/copyright-management#readme",
+  "dependencies": {
+    "truffle-contract": "^4.0.31"
+  }
 }
