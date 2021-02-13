@@ -1,3 +1,6 @@
+![Poster](https://github.com/Yash2412/copyright-management/blob/master/src/img/Poster.png)
+
+
 # Copyright Management System using Blockchain
 Image theft and copyright issues have been increasing rapidly with the rise of the internet. Therefore, **copyright protection** of images has become an unavoidable issue. 
 **Blockchain** is a distributed database that provides a *secure yet transparent* way to protect any type of records.
