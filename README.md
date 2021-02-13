@@ -1,4 +1,4 @@
-![Poster](https://github.com/Yash2412/copyright-management/blob/master/src/img/Poster.png)
+![Poster](https://github.com/Yash2412/copyright-management/blob/master/src/img/Poster_new.png)
 
 
 # Copyright Management System using Blockchain
