@@ -138,6 +138,15 @@
             animation-iteration-count:infinite;
         }
 
+        .img-card{
+            height: 280px;
+        }
+
+        .img-card img{
+            margin: auto;
+            max-height: 280px;
+        }
+
         @keyframes mymove {
             from {transform: scaleX(-1);}
             to {transform: scaleX(1);}
@@ -153,7 +162,6 @@
 <body>
     <div class="overlay"></div>
     <div class="loading"><img id="loading-img"  src="/img/loading.gif" alt="loading"></div>
-    <img class="side" src="./img/blockchain.png" alt="sides">
 
     <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow" style="height: 70px;">
         <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#" target="_blank">
@@ -166,7 +174,19 @@
             </li>
         </ul>
     </nav>
-    <div class="container">
+
+
+
+    <div class="container allBlocks" style="display: none;">
+        <button onclick="App.toggleDisplay(false)" class="btn btn-outline-secondary">Upload a New Image</button>
+        
+        <div class="row block-detail">
+            
+        </div>
+    </div>
+
+    <div class="container newUpload">
+        <button onclick="App.toggleDisplay(true)" class="btn btn-outline-secondary mb-5">Show All Blocks</button>
             <div class="waiting" style="display: block;">
                 <div class="wait">
                     <img src="./img/blockchain.png" id="wait" alt="Waiting....">
@@ -195,11 +215,14 @@
                     <div class="col-md-6 mb-3">
                         <h4>Watermarked Image</h3><hr>
                         <img src="" id="watermarked-img" alt="watermarked-img"  >
+                        <br>
+                        <p onclick="App.imageDownload(App.watermarkedImage, App.image_title)">Click to download</p>
                     </div>
                     <div class="col-md-6 mb-3">
                         <h4>Qr Code</h3><hr>
                         <img src="" id="qrcode" alt="qrcode"  >
                     </div>
+                    
                 </div>
                 <br>
                 <button class="btn btn-dark btn-block col-md-4 col-12" onclick="App.ipfsUpload()" id="uploadIpfs">Upload to IPFS</button>
@@ -238,6 +261,9 @@
                     <h4><span style="color: green;">Success !</span> <br> Your image is successfully deployed to Blockchain.</h4>
                 </div>
                 <br>
+
+                <button class="btn btn-dark btn-block col-md-12 col-12" onclick="location.reload()">New Image</button>
+
             </div>
             <div class="deployment-failed" style="display: none;">
                 <div class="ipfs-img">

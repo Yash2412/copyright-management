@@ -9,12 +9,17 @@ App = {
   image_title: "",
   qrcode: "",
   ipfsAddress: "",
+  ipfs: "",
+  haiKya: false,
+
 
   load: async () => {
     await App.loadWeb3();
     await App.loadAccount();
     await App.loadContract();
+    await App.loadIPFS();
   },
+
 
   loadWeb3: async () => {
     if (typeof web3 !== 'undefined') {
@@ -53,7 +58,7 @@ App = {
     App.account = web3.eth.currentProvider.selectedAddress
     web3.eth.defaultAccount = App.account
     console.log(App.account)
-    if(App.account){
+    if (App.account) {
       $('.waiting').hide()
       $('#content1').show()
       $('#account').html(App.account)
@@ -68,23 +73,86 @@ App = {
 
     App.newblock = await App.contract.NewBlock.deployed()
 
-    // let imgCount = await App.newblock.imageCount();
-    // console.log(imgCount.toNumber())
-
   },
 
-  loading: (kare)=>{
-    if(kare){
+  loadIPFS: async ()=>{
+    console.log("IPFS Conected")
+    const ipfs = await Ipfs.create();
+    App.ipfs = ipfs;
+  },
+
+  loading: (kare) => {
+    if (kare) {
       $('.overlay').show();
-      $("#loading-img").css({"display": "block"});
+      $("#loading-img").css({ "display": "block" });
+    }
+    else {
+      $('.overlay').hide();
+      $("#loading-img").css({ "display": "none" });
+    }
+  },
+
+
+  toggleDisplay: (isAll)=>{
+    if(isAll){
+      $('.newUpload').fadeOut()
+
+      if(!App.haiKya)
+        App.blockDetail();
+
+      $('.allBlocks').fadeIn('slow')
+      
+
+
     }
     else{
-      $('.overlay').hide();
-      $("#loading-img").css({"display": "none"});
+      $('.newUpload').fadeIn();
+      $('.allBlocks').fadeOut();
     }
   },
 
-  
+
+  blockDetail: async ()=>{
+    App.haiKya = true;
+    let imgCount = await App.newblock.imageCount();
+    let n = imgCount.toNumber();
+    for (var i = n; i > 0 ; i--) {
+
+      const imgInfo = await App.newblock.images(i);
+      const imgData = await App.getFromIPFS(imgInfo['ipfsAddress']);
+      var imgBytes = imgData.replace('data:image/jpeg;base64,', ''); 
+
+      var cnt = `
+      <div class="col-sm-4 mt-4">
+        <div class="card">
+          <div class="img-card">
+            <img class="card-img-top" src="${imgData}" alt="Card image cap">
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">${imgInfo[5]}</h5>
+            <p class="card-text"><strong>Owner's Name - </strong>${imgInfo[3]}</p>
+            <p class="card-text"><strong>Owner's Email - </strong>${imgInfo[4]}</p>
+            <button onclick = "App.imageDownload('${imgBytes}', '${imgInfo[5]}');" class="btn btn-primary">Download</button>
+          </div>
+        </div>
+      </div>`;
+
+      $('.block-detail').append(cnt);
+    }
+  },
+
+  getFromIPFS: async (cid) =>{
+    const ipfs = App.ipfs;
+    const stream = ipfs.cat(cid)
+    let data = ''
+
+    for await (const chunk of stream) {
+      // chunks of data are returned as a Buffer, convert it back to a string
+      data += chunk.toString()
+    }
+
+    return data;
+  },
 
 
   ipfsUpload: async () => {
@@ -92,39 +160,28 @@ App = {
     $('.uploading').show()
 
     console.log("Uploading to ipfs")
-    const ipfs = await Ipfs.create()
+    const ipfs = App.ipfs;
     console.log("Your ipfs: " + ipfs.cid)
-    window.ipfs = ipfs
+    
     const status = ipfs.isOnline() ? 'online' : 'offline'
     console.log(`ipfs status: ${status}`)
     const buf = buffer.Buffer(`data:image/jpeg;base64,${App.watermarkedImage}`)
-    // const buf1 = buffer.Buffer(`data:image/jpeg;base64,${App.qrcode}`)
-    // await ipfs.files.mkdir(`/${App.image_title}`)
 
-    
+
+
     const wtimg = await ipfs.add({
       path: `/${App.image_title}.jpg`,
       content: buf,
     })
-    
-    // const qr = await ipfs.add({
-    //   path: `/${App.image_title}/qrcode.jpg`,
-    //   content: buf1
-    // })
 
-    // let wtimg = await ipfs.files.write(
-    //   `/${App.image_title}/${App.image_title}.jpg`,
-    //   buf1,
-    //   {create: true})
-  
     console.log('Added file:', wtimg.path, wtimg.cid.string)
 
-    if(wtimg.cid.string){
+    if (wtimg.cid.string) {
       App.ipfsAddress = wtimg.cid.string
       App.loading(false)
       $('.uploading').hide()
       $("#ipfs-address").html(wtimg.cid.string)
-      $('.ipfs-complete').css({display: 'block'})
+      $('.ipfs-complete').css({ display: 'block' })
       // App.addBlock(wtimg.cid.string)
     }
     // console.log('Added file:', qr.path, qr.cid.string)
@@ -132,19 +189,54 @@ App = {
   },
 
   addBlock: async () => {
-    $('.ipfs-complete').css({display: 'none'})
-    $('.deploying').css({display: 'block'})
+    $('.ipfs-complete').css({ display: 'none' })
+    $('.deploying').css({ display: 'block' })
 
 
-    App.newblock.addImage(`${App.imageHash}`, App.ipfsAddress, App.owner_name, App.owner_email, App.image_title, { from: App.account }).then(()=>{
+    App.newblock.addImage(`${App.imageHash}`, App.ipfsAddress, App.owner_name, App.owner_email, App.image_title, { from: App.account }).then(() => {
       $('.deploying').hide()
       $('.deployment-complete').show()
-    }).catch((error)=>{
+    }).catch((error) => {
       $('.deploying').hide()
       $('.deployment-failed').show()
       console.error(error);
     })
   },
+
+  imageDownload: async (imageBytes, fname) =>{
+    function base64ToArrayBuffer(base64) {
+      const binaryString = window.atob(base64); // Comment this if not using base64
+      const bytes = new Uint8Array(binaryString.length);
+      return bytes.map((byte, i) => binaryString.charCodeAt(i));
+    }
+
+    function createAndDownloadBlobFile(body, filename, extension = 'jpg') {
+      const blob = new Blob([body]);
+      const fileName = `${filename}.${extension}`;
+      if (navigator.msSaveBlob) {
+        // IE 10+
+        navigator.msSaveBlob(blob, fileName);
+      } else {
+        const link = document.createElement('a');
+        // Browsers that support HTML5 download attribute
+        if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob);
+          link.setAttribute('href', url);
+          link.setAttribute('download', fileName);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+    }
+
+    const arrayBuffer = base64ToArrayBuffer(imageBytes);
+    createAndDownloadBlobFile(arrayBuffer, fname);
+
+  },
+
+
 
   talkToFlask: async () => {
     console.log("Talking to flask")
@@ -175,6 +267,8 @@ App = {
       })
   },
 
+
+
   addImage: async () => {
 
     App.loading(true);
@@ -182,12 +276,13 @@ App = {
     App.owner_name = $('#owner_name').val();
     App.owner_email = $('#owner_email').val();
     App.image_title = $('#image_title').val();
+    
     var hash = await pHash.hash($('#newImage')[0].files[0]);
     App.hexHash = hash.toHex();
     if (await App.checkPiracy(`${hash.toBinary()}`)) {
       App.talkToFlask()
     }
-    
+
   },
 
   /* 
@@ -222,7 +317,7 @@ App = {
       if (imgInfo[1] === hash || App.hammingDis(imgInfo[1], hash) <= 0.3) {
         $('#isPirated').html(`This image already has a Copyright in the name of ${imgInfo[3]}`);
         $('.overlay').hide();
-        $("#loading-img").css({"display": "none"});
+        $("#loading-img").css({ "display": "none" });
         return false;
       }
     }
