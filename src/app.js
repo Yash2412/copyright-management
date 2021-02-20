@@ -322,7 +322,6 @@ App = {
       }
     }
     App.imageHash = hash;
-    // $('#isPirated').html(`Image Sucessfully Uploaded to the Blockchain`);
     return true;
   },
 
