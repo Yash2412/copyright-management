@@ -11,6 +11,7 @@ App = {
   ipfsAddress: "",
   ipfs: "",
   haiKya: false,
+  retriveQR: "",
 
 
   load: async () => {
@@ -93,23 +94,104 @@ App = {
   },
 
 
-  toggleDisplay: (isAll)=>{
-    if(isAll){
+  toggleDisplay: (action)=>{
+    if(action === 'blocks'){
       $('.newUpload').fadeOut()
+      $('.retriveQR').fadeOut()
 
       if(!App.haiKya)
         App.blockDetail();
 
       $('.allBlocks').fadeIn('slow')
-      
-
-
     }
-    else{
+    else if(action === 'new'){
       $('.newUpload').fadeIn();
       $('.allBlocks').fadeOut();
+      $('.retriveQR').fadeOut();
+    }
+    else if(action === 'retrive'){
+      $('.newUpload').fadeOut();
+      $('.allBlocks').fadeOut();
+      $('.retriveQR').fadeIn();
     }
   },
+
+  addImage: async () => {
+
+    App.loading(true);
+
+    App.owner_name = $('#owner_name').val();
+    App.owner_email = $('#owner_email').val();
+    App.image_title = $('#image_title').val();
+    
+    var hash = await pHash.hash($('#newImage')[0].files[0]);
+    App.hexHash = hash.toHex();
+    if (await App.checkPiracy(`${hash.toBinary()}`)) {
+      App.talkToFlask()
+    }
+
+  },
+
+  checkPiracy: async (hash) => {
+    let imgCount = await App.newblock.imageCount();
+    for (var i = 1; i <= imgCount.toNumber(); i++) {
+      const imgInfo = await App.newblock.images(i)
+      // console.log(imgInfo[2]+"   "+imgInfo[1])
+
+      if (imgInfo[1] === hash || App.hammingDis(imgInfo[1], hash) <= 0.3) {
+        $('#isPirated').html(`This image already has a Copyright in the name of ${imgInfo[3]}`);
+        $('.overlay').hide();
+        $("#loading-img").css({ "display": "none" });
+        return false;
+      }
+    }
+    App.imageHash = hash;
+    return true;
+  },
+
+  hammingDis: (str1, str2) => {
+    // console.log("hamming dis  \n" + str1+"\n"+ str2)
+    if (str1.length !== str2.length) {
+      return 0;
+    }
+    let dist = 0;
+    for (let i = 0; i < str1.length; i += 1) {
+      if (str1[i] !== str2[i]) {
+        dist += 1;
+      };
+    };
+    return dist / str1.length;
+  },
+
+  talkToFlask: async () => {
+    console.log("Talking to flask")
+    $.post('http://localhost:5000/',
+      {
+        "hash": App.imageHash,
+        "owner_name": App.owner_name,
+        "owner_email": App.owner_email,
+        "img": App.dataUrl,
+      },
+      (data) => {
+        // console.log(data)
+        App.watermarkedImage = data
+
+        $('#content1').hide()
+        $('.after').show()
+        $('#watermarked-img').attr('src', "data:image/jpeg;base64," + App.watermarkedImage)
+        $.get('http://localhost:5000/qrcode/', (res) => {
+          App.qrcode = res
+          $('#qrcode').attr('src', "data:image/jpeg;base64," + App.qrcode)
+
+          // App.ipfsUpload();
+
+          App.loading(false);
+
+        })
+
+      })
+  },
+
 
 
   blockDetail: async ()=>{
@@ -139,19 +221,6 @@ App = {
 
       $('.block-detail').append(cnt);
     }
-  },
-
-  getFromIPFS: async (cid) =>{
-    const ipfs = App.ipfs;
-    const stream = ipfs.cat(cid)
-    let data = ''
-
-    for await (const chunk of stream) {
-      // chunks of data are returned as a Buffer, convert it back to a string
-      data += chunk.toString()
-    }
-
-    return data;
   },
 
 
@@ -203,6 +272,19 @@ App = {
     })
   },
 
+  getFromIPFS: async (cid) =>{
+    const ipfs = App.ipfs;
+    const stream = ipfs.cat(cid)
+    let data = ''
+
+    for await (const chunk of stream) {
+      // chunks of data are returned as a Buffer, convert it back to a string
+      data += chunk.toString()
+    }
+
+    return data;
+  },
+
   imageDownload: async (imageBytes, fname) =>{
     function base64ToArrayBuffer(base64) {
       const binaryString = window.atob(base64); // Comment this if not using base64
@@ -233,56 +315,21 @@ App = {
 
     const arrayBuffer = base64ToArrayBuffer(imageBytes);
     createAndDownloadBlobFile(arrayBuffer, fname);
-
   },
 
 
+  retriveQRCode: async ()=>{
+    console.log("Talking to flask 111")
+    $.post('http://localhost:5000/recover/',
+    {
+      "img": App.retriveQR,
+    },
+    (data) => {
 
-  talkToFlask: async () => {
-    console.log("Talking to flask")
-    $.post('http://localhost:5000/',
-      {
-        "hash": App.imageHash,
-        "owner_name": App.owner_name,
-        "owner_email": App.owner_email,
-        "img": App.dataUrl,
-      },
-      (data) => {
-        // console.log(data)
-        App.watermarkedImage = data
-
-        $('#content1').hide()
-        $('.after').show()
-        $('#watermarked-img').attr('src', "data:image/jpeg;base64," + App.watermarkedImage)
-        $.get('http://localhost:5000/qrcode/', (res) => {
-          App.qrcode = res
-          $('#qrcode').attr('src', "data:image/jpeg;base64," + App.qrcode)
-
-          // App.ipfsUpload();
-
-          App.loading(false);
-
-        })
-
-      })
-  },
-
-
-
-  addImage: async () => {
-
-    App.loading(true);
-
-    App.owner_name = $('#owner_name').val();
-    App.owner_email = $('#owner_email').val();
-    App.image_title = $('#image_title').val();
-    
-    var hash = await pHash.hash($('#newImage')[0].files[0]);
-    App.hexHash = hash.toHex();
-    if (await App.checkPiracy(`${hash.toBinary()}`)) {
-      App.talkToFlask()
-    }
-
+      $('#retrive_content1').hide()
+      $('.retrive_after').show()
+      $('#retrived_qr').attr('src', "data:image/jpeg;base64," + data)
+    })
   },
 
   /* 
@@ -293,38 +340,6 @@ App = {
       1101111100101111001000101110010111011111111111110110001011011111
   
   */
-
-  hammingDis: (str1, str2) => {
-    // console.log("hamming dis  \n" + str1+"\n"+ str2)
-    if (str1.length !== str2.length) {
-      return 0;
-    }
-    let dist = 0;
-    for (let i = 0; i < str1.length; i += 1) {
-      if (str1[i] !== str2[i]) {
-        dist += 1;
-      };
-    };
-    return dist / str1.length;
-  },
-
-  checkPiracy: async (hash) => {
-    let imgCount = await App.newblock.imageCount();
-    for (var i = 1; i <= imgCount.toNumber(); i++) {
-      const imgInfo = await App.newblock.images(i)
-      // console.log(imgInfo[2]+"   "+imgInfo[1])
-
-      if (imgInfo[1] === hash || App.hammingDis(imgInfo[1], hash) <= 0.3) {
-        $('#isPirated').html(`This image already has a Copyright in the name of ${imgInfo[3]}`);
-        $('.overlay').hide();
-        $("#loading-img").css({ "display": "none" });
-        return false;
-      }
-    }
-    App.imageHash = hash;
-    return true;
-  },
-
 }
 
 $(() => {

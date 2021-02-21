@@ -11,7 +11,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 import numpy as np
 import pywt
 import os
-import qrcode
+from qrcode import make as makeQR
 import base64
 import urllib
 from PIL import Image
@@ -26,13 +26,8 @@ imageURL = ""
 watermarkURL = ""
 
 def generateQR(data):
-    qr = qrcode.QRCode(version=1,error_correction=qrcode.constants.ERROR_CORRECT_H,box_size=10,border=4)
-
-    qr.add_data(data)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
-
-    img.save(current_path+'/qrcode.png')
+    qr = makeQR(data)
+    qr.save('qrcode.png')
     global watermarkURL
     watermarkURL = current_path+'/qrcode.png'
 
@@ -128,7 +123,6 @@ def get_watermark(dct_watermarked_coeff, watermark_size):
 
 def recover_watermark(image_array, model='haar', level = 1):
 
-
     coeffs_watermarked_image = process_coefficients(image_array, model, level=level)
     dct_watermarked_coeff = apply_dct(coeffs_watermarked_image[0])
     
@@ -150,6 +144,8 @@ def print_image_from_array(image_array, name):
 
 
 
+
+
 def w2d():
     model = 'haar'
     level = 1
@@ -167,8 +163,6 @@ def w2d():
     print_image_from_array(image_array_H, '/watermarked_image.jpg')
 
 
-# recover images
-    recover_watermark(image_array = image_array_H, model=model, level = level)
 
 
 @app.route('/download/<name>')
@@ -201,6 +195,27 @@ def hello_world():
     
 
     print('----------------Done------------------')
+    return result
+
+
+@app.route('/recover/', methods=['POST'])
+def recoverImage():
+    model = 'haar'
+    level = 1
+
+    data = request.form.get('img')
+    response = urllib.request.urlopen(data)
+    with open('recover_watermarked.jpg', 'wb') as f:
+        f.write(response.file.read())
+    
+    image_array_H = convert_image("recover_watermarked.jpg", 2048)
+
+    # recover images
+    recover_watermark(image_array = image_array_H, model=model, level = level)
+
+    with open("qrcode.png", "rb") as img_file:
+        result = base64.b64encode(img_file.read())
+
     return result
 
 

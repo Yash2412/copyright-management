@@ -29,17 +29,42 @@
             <img height="50" src="./img/logo.png" alt="logo">
             Copyright Management System
         </a>
+        
         <ul class="navbar-nav px-3">
             <li class="nav-item text-nowrap d-none d-sm-none d-sm-block">
                 <small><a class="nav-link">Active account - <span id="account"></span></a></small>
             </li>
         </ul>
+
+        <div class="form-inline">
+            <button onclick="App.toggleDisplay('retrive')" class="btn btn-sm btn-outline-light mr-2 ml-2">Retrive QR Code</button>
+            <button onclick="App.toggleDisplay('blocks')" class="btn btn-sm btn-outline-light mr-2 ml-2">Show All Blocks</button>
+            <button onclick="App.toggleDisplay('new')" class="btn btn-sm btn-light mr-2 ml-2">Upload a New Image</button>
+        </div>
     </nav>
 
 
 
+    <div class="container retriveQR" style="display: none;">
+        <div class="col-md-4 col-12 " id="retrive_content1" style="margin-left: auto;margin-right: auto;">
+            <div class="imageDisplay" id="idisplay1">
+                <img id="displayImage1" src="img/icons8-upload-100.png" alt="Image"><br>
+                <span class="mt-2">Select an Watermarked image</span>
+            </div>
+            <input type="file" class="form-control" onchange="changeImage1(this)" hidden name="image" accept="image/*" id="newImage1" required><br>
+            <button type="submit" onclick="App.retriveQRCode();" class="btn btn-dark btn-block">Submit</button>
+        </div>
+
+        <div class="retrive_after col-md-4 col-12 " style="display: none;margin-left: auto;margin-right: auto;">
+            <div class="imageDisplay">
+                <h4>Retrived QR Code</h3><hr>
+                <img src="" id="retrived_qr" alt="retrived-qr"  >
+                <br>
+            </div>
+        </div>
+    </div>
+
     <div class="container allBlocks" style="display: none;">
-        <button onclick="App.toggleDisplay(false)" class="btn btn-outline-secondary">Upload a New Image</button>
         
         <div class="row block-detail">
             
@@ -47,7 +72,6 @@
     </div>
 
     <div class="container newUpload">
-        <button onclick="App.toggleDisplay(true)" class="btn btn-outline-secondary mb-5">Show All Blocks</button>
             <div class="waiting" style="display: block;">
                 <div class="wait">
                     <img src="./img/blockchain.png" id="wait" alt="Waiting....">
@@ -64,7 +88,7 @@
                     <input type="text" name="image_title" id="image_title" class="form-control" placeholder="Image Title" required><br>
                     <div class="imageDisplay" id="idisplay">
                         <img id="displayImage" src="img/icons8-upload-100.png" alt="Image"><br>
-                        <span>Select image</span>
+                        <span class="mt-2">Select image</span>
                     </div>                        
                     <input type="file" class="form-control" onchange="changeImage(this)" hidden name="image" accept="image/*" id="newImage" required><br>
                     <button type="submit" class="btn btn-dark btn-block">Submit</button>
@@ -159,6 +183,23 @@
 				reader.onload = function (e) {
                     App.dataUrl = e.target.result
 					$("#displayImage").attr('src', e.target.result)
+				};
+
+				reader.readAsDataURL(input.files[0]);
+			}
+		}
+
+        $('#idisplay1').click(()=>{
+            $('#newImage1').click();
+        })
+
+        function changeImage1(input) {
+			if (input.files && input.files[0]) {
+				var reader = new FileReader();
+                
+				reader.onload = function (e) {
+                    App.retriveQR = e.target.result;
+					$("#displayImage1").attr('src', e.target.result)
 				};
 
 				reader.readAsDataURL(input.files[0]);
