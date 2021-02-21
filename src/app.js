@@ -99,6 +99,11 @@ App = {
       $('.newUpload').fadeOut()
       $('.retriveQR').fadeOut()
 
+      $('.form-inline button').removeClass('btn-light')
+      $('.form-inline button').addClass('btn-outline-light')
+      $('#shw').removeClass('btn-outline-light')
+      $('#shw').addClass('btn-light')
+
       if(!App.haiKya)
         App.blockDetail();
 
@@ -108,11 +113,21 @@ App = {
       $('.newUpload').fadeIn();
       $('.allBlocks').fadeOut();
       $('.retriveQR').fadeOut();
+
+      $('.form-inline button').removeClass('btn-light')
+      $('.form-inline button').addClass('btn-outline-light')
+      $('#new').removeClass('btn-outline-light')
+      $('#new').addClass('btn-light')
     }
     else if(action === 'retrive'){
       $('.newUpload').fadeOut();
       $('.allBlocks').fadeOut();
       $('.retriveQR').fadeIn();
+
+      $('.form-inline button').removeClass('btn-light')
+      $('.form-inline button').addClass('btn-outline-light')
+      $('#ret').removeClass('btn-outline-light')
+      $('#ret').addClass('btn-light')
     }
   },
 
