@@ -227,8 +227,8 @@ App = {
           </div>
           <div class="card-body">
             <h5 class="card-title">${imgInfo[5]}</h5>
-            <p class="card-text"><strong>Owner's Name - </strong>${imgInfo[3]}</p>
-            <p class="card-text"><strong>Owner's Email - </strong>${imgInfo[4]}</p>
+            <p class="card-text"><strong>Owner's Name - </strong><br>${imgInfo[3]}</p>
+            <p class="card-text"><strong>Owner's Email - </strong><br>${imgInfo[4]}</p>
             <button onclick = "App.imageDownload('${imgBytes}', '${imgInfo[5]}');" class="btn btn-primary">Download</button>
           </div>
         </div>
