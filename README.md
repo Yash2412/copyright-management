@@ -2,7 +2,7 @@
 
 <br>
 <div align="left">
-  <a href="https://youtu.be/P6CPhB73_28"><img src="https://seeklogo.com/images/Y/youtube-2017-logo-D185B4FEFA-seeklogo.com.png" alt="Walkthrough" width="100"></a>
+  <a href="https://youtu.be/-GM1O-ntQ6M"><img src="https://seeklogo.com/images/Y/youtube-2017-logo-D185B4FEFA-seeklogo.com.png" alt="Walkthrough" width="100"></a>
 </div>
 
 # Copyright Management System using Blockchain
