@@ -1,7 +1,12 @@
 ![Poster](https://github.com/Yash2412/copyright-management/blob/master/src/img/Poster_new.png)
 
+<br>
+<div align="left">
+  <a href="https://youtu.be/P6CPhB73_28"><img src="https://seeklogo.com/images/Y/youtube-2017-logo-D185B4FEFA-seeklogo.com.png" alt="Walkthrough" width="100"></a>
+</div>
 
 # Copyright Management System using Blockchain
+
 Image theft and copyright issues have been increasing rapidly with the rise of the internet. Therefore, **copyright protection** of images has become an unavoidable issue. 
 **Blockchain** is a distributed database that provides a *secure yet transparent* way to protect any type of records.
 Our system gives users an option to **encrypt** their personal information with their piece of art and register it on blockchain, at same time using *image processing* algorithms it makes sure no **duplicacy or piracy** of your work.
